@@ -117,7 +117,9 @@ class Readability
         /* Turn all double br's into p's */
         $html = preg_replace($this->regexps['replaceBrs'], '</p><p>', $html);
         $html = preg_replace($this->regexps['replaceFonts'], '<$1span>', $html);
-        $html = mb_convert_encoding($html, 'HTML-ENTITIES', "UTF-8");
+        if(strpos($html, 'dir="rtl"') === false && strpos($html, "dir='rtl'") === false){
+            $html = mb_convert_encoding($html, 'HTML-ENTITIES', "UTF-8");
+        }
         if (trim($html) == '') $html = '<html></html>';
         if ($parser=='html5lib' && ($this->dom = HTML5_Parser::parse($html))) {
             // all good
