@@ -80,6 +80,7 @@ class Readability
     protected $bodyCache = null; // Cache the body HTML in case we need to re-use it later
     protected $flags = 7; // 1 | 2 | 4;   // Start with all flags set.
     protected $success = false; // indicates whether we were able to extract or not
+    private $helpers = array();
 
     /**
      * All of the regular expressions in use within readability.
@@ -111,7 +112,7 @@ class Readability
      * @param string (optional) URL associated with HTML (used for footnotes)
      * @param string which parser to use for turning raw HTML into a DOMDocument (either 'libxml' or 'html5lib')
      */
-    function __construct($html, $url=null, $parser='libxml')
+    function __construct($html, $url=null, $parser='libxml', array $helpers = null)
     {
         $this->url = $url;
         /* Turn all double br's into p's */
@@ -129,6 +130,12 @@ class Readability
             @$this->dom->loadHTML($html);
         }
         $this->dom->registerNodeClass('DOMElement', 'JSLikeHTMLElement');
+        
+        if($helpers) {
+            foreach($helpers as $helper) {
+                $this->helpers[$helper->getName()] = $helper;
+            }
+        }
     }
 
     /**
@@ -652,23 +659,26 @@ class Readability
          * After we've calculated scores, loop through all of the possible candidate nodes we found
          * and find the one with the highest score.
          **/
+        
         $topCandidate = null;
-        for ($c=0, $cl=count($candidates); $c < $cl; $c++)
-        {
-            /**
-             * Scale the final candidates score based on link density. Good content should have a
-             * relatively small link density (5% or less) and be mostly unaffected by this operation.
-             **/
-            $readability = $candidates[$c]->getAttributeNode('readability');
-            $readability->value = $readability->value * (1-$this->getLinkDensity($candidates[$c]));
+        if(!isset($this->helpers['TopCandidateHelper']) || $this->helpers['TopCandidateHelper']->getSetting('skipSelectingTopCandidateByScore') !== true) {
+            for ($c=0, $cl=count($candidates); $c < $cl; $c++)
+            {
+                /**
+                 * Scale the final candidates score based on link density. Good content should have a
+                 * relatively small link density (5% or less) and be mostly unaffected by this operation.
+                 **/
+                $readability = $candidates[$c]->getAttributeNode('readability');
+                $readability->value = $readability->value * (1-$this->getLinkDensity($candidates[$c]));
 
-            $this->dbg('Candidate: ' . $candidates[$c]->tagName . ' (' . $candidates[$c]->getAttribute('class') . ':' . $candidates[$c]->getAttribute('id') . ') with score ' . $readability->value);
+                $this->dbg('Candidate: ' . $candidates[$c]->tagName . ' (' . $candidates[$c]->getAttribute('class') . ':' . $candidates[$c]->getAttribute('id') . ') with score ' . $readability->value);
 
-            if (!$topCandidate || $readability->value > (int)$topCandidate->getAttribute('readability')) {
-                $topCandidate = $candidates[$c];
+                if (!$topCandidate || $readability->value > (int)$topCandidate->getAttribute('readability')) {
+                    $topCandidate = $candidates[$c];
+                }
             }
-        }
-
+        } 
+        
         /**
          * If we still have no top candidate, just use the body as a last resort.
          * We also have to copy the body node so it is something we can modify.
