@@ -555,11 +555,13 @@ class Readability
             /* Remove unlikely candidates */
             if ($stripUnlikelyCandidates) {
                 $unlikelyMatchString = $node->getAttribute('class') . $node->getAttribute('id');
-                if (
-                    preg_match($this->regexps['unlikelyCandidates'], $unlikelyMatchString) &&
+                $removingCondition = preg_match($this->regexps['unlikelyCandidates'], $unlikelyMatchString) &&
                     !preg_match($this->regexps['okMaybeItsACandidate'], $unlikelyMatchString) &&
-                    $tagName != 'BODY'
-                )
+                    $tagName != 'BODY';
+                if(isset($this->helpers['KeepContentHelper']) && $this->helpers['KeepContentHelper']->getSetting('tagsToKeep') !== 'Setting is not set'){
+                    $removingCondition = $removingCondition && !$this->helpers['KeepContentHelper']->checkIfShouldKeepElement($tagName);
+                } 
+                if ($removingCondition)
                 {
                     $this->dbg('Removing unlikely candidate - ' . $unlikelyMatchString);
                     //$nodesToRemove[] = $node;
