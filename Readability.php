@@ -137,7 +137,7 @@ class Readability
                 $this->helpers[$helper->getName()] = $helper;
             }
         }
-        
+
         //Skipping unwanted content for specific sites
         if(isset($this->helpers['SkipContentHelper']) && $this->helpers['SkipContentHelper']->getSetting('classesToSkip') !== 'Setting is not set'){
             foreach($this->helpers['SkipContentHelper']->getSetting('classesToSkip') as $classToSkip => $value) {
@@ -204,7 +204,7 @@ class Readability
         $innerDiv       = $this->dom->createElement('div');
         $articleTitle   = $this->getArticleTitle();
         $articleContent = $this->grabArticle();
-
+      
         if (!$articleContent) {
             $this->success = false;
             $articleContent = $this->dom->createElement('div');
@@ -609,7 +609,6 @@ class Readability
                 }
             }
         }
-
         /**
          * Loop through all paragraphs, and assign a score to them based on how content-y they look.
          * Then add their score to their parent node.
@@ -689,6 +688,7 @@ class Readability
             }
         } 
         
+        $topCandidate = null;
         /**
          * If we still have no top candidate, just use the body as a last resort.
          * We also have to copy the body node so it is something we can modify.
@@ -700,7 +700,12 @@ class Readability
                 if (!isset($page->documentElement)) {
                     // we don't have a body either? what a mess! :)
                 } else {
-                    $topCandidate->innerHTML = $page->documentElement->innerHTML;
+                    if(isset($this->helpers['TopCandidateHelper']) && $this->helpers['TopCandidateHelper']->getSetting('skipSelectingTopCandidateByScore') !== true) {                       
+                        $topCandidate->innerHTML = $this->helpers['TopCandidateHelper']->getTopCandidateElementByUrl(new DOMXPath($this->dom));
+                    } else {
+                        $topCandidate->innerHTML = $page->documentElement->innerHTML;
+                    }
+                    
                     $page->documentElement->innerHTML = '';
                     $this->reinitBody();
                     $page->documentElement->appendChild($topCandidate);
@@ -712,7 +717,7 @@ class Readability
             }
             $this->initializeNode($topCandidate);
         }
-
+  
         /**
          * Now that we have the top candidate, look through its siblings for content that might also be related.
          * Things like preambles, content split by ads that we removed, etc.
@@ -1087,7 +1092,7 @@ class Readability
                         $toRemove = true;
                     } else if($weight < 25 && $linkDensity > 0.2) {
                         $this->dbg(' weight smaller than 25 and link density above 0.2');
-                        $toRemove = true;
+                       // $toRemove = true;
                     } else if($a > 2 && ($weight >= 25 && $linkDensity > 0.5)) {
                         $this->dbg(' more than 2 links and weight above 25 but link density greater than 0.5');
                         $toRemove = true;
