@@ -1045,7 +1045,9 @@ class Readability
             $this->dbg('Cleaning Conditionally ' . $tagsList->item($i)->tagName . ' (' . $tagsList->item($i)->getAttribute('class') . ':' . $tagsList->item($i)->getAttribute('id') . ')' . (($tagsList->item($i)->hasAttribute('readability')) ? (' with score ' . $tagsList->item($i)->getAttribute('readability')) : ''));
 
             if ($weight + $contentScore < 0) {
-                $tagsList->item($i)->parentNode->removeChild($tagsList->item($i));
+                if(!isset($this->helpers['CleanConditionallyHelper']) || $this->helpers['CleanConditionallyHelper']->getSetting('keepLowScoredContent') !== true){
+                    $tagsList->item($i)->parentNode->removeChild($tagsList->item($i));
+                }
             }
             else if ( $this->getCharCount($tagsList->item($i), ',') < 10) {
                 /**
