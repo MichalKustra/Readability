@@ -118,7 +118,8 @@ class Readability
         /* Turn all double br's into p's */
         $html = preg_replace($this->regexps['replaceBrs'], '</p><p>', $html);
         $html = preg_replace($this->regexps['replaceFonts'], '<$1span>', $html);
- 
+        $html = str_replace('<br>', '', $html);
+        
         if(strpos($html, 'dir="rtl"') === false && strpos($html, "dir='rtl'") === false){
             $html = mb_convert_encoding($html, 'HTML-ENTITIES', "UTF-8");
         }
@@ -139,9 +140,24 @@ class Readability
         }
 
         //Skipping unwanted content for specific sites
-        if(isset($this->helpers['SkipContentHelper']) && $this->helpers['SkipContentHelper']->getSetting('classesToSkip') !== 'Setting is not set'){
-            foreach($this->helpers['SkipContentHelper']->getSetting('classesToSkip') as $classToSkip => $value) {
-                $this->helpers['SkipContentHelper']->skipContent(new DomXpath($this->dom), $classToSkip);
+        if(isset($this->helpers['SkipContentHelper']) && $this->helpers['SkipContentHelper']->getSetting('classesToSkip') !== 'Setting is not set') {
+            //skips elements by classes
+            if($this->helpers['SkipContentHelper']->getSetting('classesToSkip') !== 'Setting is not set') {
+                foreach($this->helpers['SkipContentHelper']->getSetting('classesToSkip') as $classToSkip => $value) {
+                    $this->helpers['SkipContentHelper']->skipContentByClass(new DomXpath($this->dom), $classToSkip);
+                }
+            }
+            //skips elements by ids
+            if($this->helpers['SkipContentHelper']->getSetting('idsToSkip') !== 'Setting is not set') {
+                foreach($this->helpers['SkipContentHelper']->getSetting('idsToSkip') as $idToSkip => $value) {
+                    $this->helpers['SkipContentHelper']->skipContentById(new DomXpath($this->dom), $idToSkip);
+                }
+            }
+            //skips elements by it's text content
+            if($this->helpers['SkipContentHelper']->getSetting('textContentToSkip') !== 'Setting is not set') {
+                foreach($this->helpers['SkipContentHelper']->getSetting('textContentToSkip') as $textContentToSkip => $value) {
+                    $this->helpers['SkipContentHelper']->skipContentbyTextContent(new DomXpath($this->dom), $textContentToSkip);
+                }
             }
         }
     }
@@ -433,6 +449,7 @@ class Readability
     function prepArticle($articleContent) {
         $this->cleanStyles($articleContent);
         $this->killBreaks($articleContent);
+     //   var_dump($articleContent);die();
         if ($this->revertForcedParagraphElements) {
             $this->revertReadabilityStyledElements($articleContent);
         }
