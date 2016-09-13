@@ -140,7 +140,7 @@ class Readability
         }
 
         //Skipping unwanted content for specific sites
-        if(isset($this->helpers['SkipContentHelper']) && $this->helpers['SkipContentHelper']->getSetting('classesToSkip') !== 'Setting is not set') {
+        if(isset($this->helpers['SkipContentHelper'])) {
             //skips elements by classes
             if($this->helpers['SkipContentHelper']->getSetting('classesToSkip') !== 'Setting is not set') {
                 foreach($this->helpers['SkipContentHelper']->getSetting('classesToSkip') as $classToSkip => $value) {
@@ -157,6 +157,12 @@ class Readability
             if($this->helpers['SkipContentHelper']->getSetting('textContentToSkip') !== 'Setting is not set') {
                 foreach($this->helpers['SkipContentHelper']->getSetting('textContentToSkip') as $textContentToSkip => $value) {
                     $this->helpers['SkipContentHelper']->skipContentbyTextContent(new DomXpath($this->dom), $textContentToSkip);
+                }
+            }
+            //skips elements by tag names
+            if($this->helpers['SkipContentHelper']->getSetting('tagsToSkip') !== 'Setting is not set') {
+                foreach($this->helpers['SkipContentHelper']->getSetting('tagsToSkip') as $tagToSkip => $value) {
+                    $this->helpers['SkipContentHelper']->skipContentbyTag(new DomXpath($this->dom), $tagToSkip);
                 }
             }
         }
@@ -1193,6 +1199,5 @@ class Readability
             $this->body->innerHTML = $this->bodyCache;
         }
     }
-
 }
 ?>
