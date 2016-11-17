@@ -463,7 +463,10 @@ class Readability
         /* Clean out junk from the article content */
         $this->cleanConditionally($articleContent, 'form');
         $this->clean($articleContent, 'object');
-        $this->clean($articleContent, 'h1');
+        
+        if(!isset($this->helpers['KeepContentHelper']) || (isset($this->helpers['KeepContentHelper']) && $this->helpers['KeepContentHelper']->getSetting('keepHeaders') === 'Setting is not set')) {
+            $this->clean($articleContent, 'h1');
+        }
 
         /**
          * If there is only one h2, they are probably using it
