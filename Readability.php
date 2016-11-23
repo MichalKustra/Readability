@@ -1156,7 +1156,9 @@ class Readability
 
                 if ($toRemove) {
                     //$this->dbg('Removing: '.$tagsList->item($i)->innerHTML);
-                    $tagsList->item($i)->parentNode->removeChild($tagsList->item($i));
+                    if(!isset($this->helpers['CleanConditionallyHelper']) || $this->helpers['CleanConditionallyHelper']->getSetting('skipToRemoveCondition') !== true){
+                        $tagsList->item($i)->parentNode->removeChild($tagsList->item($i));
+                    }
                 }
             }
         }
